@@ -54,22 +54,19 @@ Snippet D (no early exist):
 
 ## When measuring actual runtime, does one of the snippets run faster than the other? In what situations? Why do you think this is the case?
 getGridOne(): target at cell [0, 0]
-
-    findFirstInstanceOne(): Run time was 0.0024 milliseconds.
-    findFirstInstanceTwo(): Run time was 9.4926 milliseconds.
+  findFirstInstanceOne(): Run time was 0.0024 milliseconds.
+  findFirstInstanceTwo(): Run time was 9.4926 milliseconds.
 
 getGridTwo(): target at cell [3999, 3999]
-
-    findFirstInstanceOne(): Run time was 10.5992 milliseconds.
-    findFirstInstanceTwo(): Run time was 8.9226 milliseconds.
+  findFirstInstanceOne(): Run time was 10.5992 milliseconds.
+  findFirstInstanceTwo():
 
 ## What else do you notice about the reported runtime? Is it 100% consistent every time you run it?
-Snippet D runs faster on grid two than on grid one even if it scans through the entire grid for both iterations. When Snippet C and D both scan through the entire grid to eventually find the target, Snippet D runs slightly faster. This indicates that even with the same input size, the runtime is not 100% consistent each time.
+The hardware affects the actual runtime.
 
 # Part 3:
 ## Before you make any changes, explain whether you think a LinkedList or an ArrayList makes more sense in this instance. Which do you think will be faster? Why?
-ArrayList is faster in this case. The ticket tracking system needs to support large amount of add and get operations. While add for both ArrayList and LinkedList is O(1), ArrayList supports faster get operation (O(1)) with its direct indexing, 
-whereas get for LinkedList is O(n). Remove for a ticket system is less common than add, and it is O(n) for both ArrayList and LinkedList. 
+
 
 ## When measuring actual runtime, is the LinkedList version Suho wrote, or your ArrayList version faster? Does this change when the list size is small versus when it is very large?
 
