@@ -111,7 +111,20 @@ performance where ticket at the end is processed first (LIFO, stack-like structu
 # Part 4
 ## What are the Big O and Big Ω times for Javier's algorithm? What are the Big O and Big Ω for space use?
 
+Time Complexity
 
+    N operations: populating the queue
+    N - 1 operations: repeatedly merging the first two arrays
+      1: get first
+      1: get first
+      a + b -> log(N): each merge
+      1: add combined to queue
+    1: return queue.remove(0)
+
+Overall Time Complexity = N + (N - 1)(1 + 1 + log(N) + 1) + 1 = O(N*log(N)) = Ω(N*log(N)) therefore Θ(N*log(N))
+
+    
+Space Complexity: O(N) and Ω(N) therefore Θ(N) because it uses a LinkedList queue to store the sorted array.
 
 ## Write a paragraph or two in the style of a technical report (think about – how would I write this professionally if I needed to explain my findings to my manager?). 
 Your report should answer the following questions:
@@ -119,3 +132,14 @@ Your report should answer the following questions:
     * What about in actual runtime?
 * Which implementation do you suggest should be used? Are there certain situations that might call for the other approach?
 
+JavierMergeSort
+
+    Average run time was 0.26755 milliseconds.
+
+MergeSort
+
+    Average run time was 0.10918 milliseconds.
+
+Both algorithms are O(N*LogN) in time and O(N) in space. MergeSort has shorter actual runtime then JavierMergeSort. While
+theoretically both algorithms have the same performance, the experiment showed that recursive approach offers better real-world
+performance. 
