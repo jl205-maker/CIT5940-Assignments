@@ -15,6 +15,27 @@ public class TicketProcessorArray {
         // createShortQueue(ticketQueue);
         // createLongQueue(ticketQueue);
 
-        while()
+        while(!ticketQueue.isEmpty()) {
+            String currentTicket = ticketQueue.remove(0);
+
+            System.out.println("Processing: " + currentTicket);
+
+            System.out.println("Finished! Remaining in line: " + ticketQueue.size());
+            System.out.println("---------------------------");
+        }
+    }
+
+    public static void createShortQueue(List<String> queue) {
+        // feel free to change the number of tickets here to test different queue sizes
+        for (int i = 1; i <= 50; i++) {
+            queue.add("Ticket #" + i);
+        }
+    }
+
+    public static void createLongQueue(List<String> queue) {
+        // feel free to change the number of tickets here to test different queue sizes
+        for (int i = 1; i <= 20000; i++) {
+            queue.add("Ticket #" + i);
+        }
     }
 }
