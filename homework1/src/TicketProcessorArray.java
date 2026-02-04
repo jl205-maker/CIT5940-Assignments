@@ -11,7 +11,7 @@ public class TicketProcessorArray {
         // compute average runtime
         for (int i = 0; i < 10; i++) {
             start = System.nanoTime(); // start testing runtime
-            processTicketsArrayList();
+            processTicketsArrayList2();
             end = System.nanoTime(); // end testing runtime
             // System.out.println("Run time was " + (end - start) / 1000000.0 + " milliseconds." ); // print runtime
             total += (end - start);
@@ -42,7 +42,7 @@ public class TicketProcessorArray {
 
         // test cases
         // createShortQueue(ticketQueue);
-        createLongQueue(ticketQueue);
+        // createLongQueue(ticketQueue);
 
         while(!ticketQueue.isEmpty()) {
             // remove from end is O(1)

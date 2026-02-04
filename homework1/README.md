@@ -89,6 +89,11 @@ Ignoring queue creation time does not change the Big-O conclusion that LinkedLis
 the processing time. Remove(0) is O(1) for LinkedList, so it is O(N) for LinkedList to process N tickets. Remove(0) is O(N) for ArrayList due to each element shifting right, so it is O(N^2) to process N tickets. Therefore, LinkedList
 is still faster, especially for larger queues.
 
+ArrayList LIFO (stack) Implementation (O(1) removal) for comparison
+
+    createShortQueue(ticketQueue)：Average run time was 0.16295 milliseconds.
+    createLongQueue(ticketQueue):Average run time was 2.24414 milliseconds.
+
 ## Write a paragraph or two in the style of a technical report (think about – how would I write this professionally if I needed to explain my findings to my manager?).
 Your report should answer the following questions:
 * What did you learn from this experience?
@@ -97,8 +102,10 @@ Your report should answer the following questions:
 * Which implementation do you suggest should be used? Are there certain situations that might call for the other approach?
 * How does the theoretical time complexity compare with your findings?
 
-The system should use LinkedList implementation
-Theoretical time complexity aligns with the findings when input size is large, and it is less obvious/aligned when input size is small.
+Selecting the appropriate data structure depends on how it is implemented and how the system is used in the specific context. While ArrayList can be efficient for small
+workloads because it has less overhead, repeated removal from it incurs O(N) per operation, leading to poor scalability. In contrast, LinkedList has larger overhead (when creating pointers and nodes), but
+it supports O(1) removal from the head and is better for large, queue-like tasks where tickets are processed in FIFO order. If we do not process tickets in that order, ArrayList can achieve similar runtime 
+performance where ticket at the end is processed first (LIFO, stack-like structure). Theoretical time complexity aligns with the findings when input size is large, but it is less obvious when input size is small.
 
 
 # Part 4
