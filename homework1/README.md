@@ -68,25 +68,37 @@ Snippet D runs faster on grid two than on grid one even if it scans through the 
 
 # Part 3:
 ## Before you make any changes, explain whether you think a LinkedList or an ArrayList makes more sense in this instance. Which do you think will be faster? Why?
-ArrayList is faster in this case. The ticket tracking system needs to support large amount of add and get operations. While add for both ArrayList and LinkedList is O(1), ArrayList supports faster get operation (O(1)) with its direct indexing, 
-whereas get for LinkedList is O(n). Remove for a ticket system is less common than add, and it is O(n) for both ArrayList and LinkedList. 
-
+LinkedList is faster in this case. For a “queue” where you repeatedly remove the front element, LinkedList.remove(0) is O(1), 
+while ArrayList.remove(0) is O(N) because all later elements shift left.
 ## When measuring actual runtime, is the LinkedList version Suho wrote, or your ArrayList version faster? Does this change when the list size is small versus when it is very large?
+LinkedList
 
+    createShortQueue(ticketQueue)：Average run time was 0.1901 milliseconds.
+    createLongQueue(ticketQueue): Average run time was 2.60594 milliseconds.
+
+ArrayList
+
+    createShortQueue(ticketQueue)：Average run time was 0.14166 milliseconds.
+    createLongQueue(ticketQueue):Average run time was 12.98852 milliseconds.
+
+The measured runtime shows ArrayList can be slightly faster for small queues due to lower overhead and better cache locality, even though remove(0) is O(N). However, as the queue size grows, 
+the repeated shifting makes the ArrayList approach much slower overall (total O(N²)), while LinkedList stays O(N) because each remove(0) is O(1). Therefore the performance gap becomes visible only at large input sizes.
 
 ## If you ignore queue creation times, does that affect which ticket processor version is faster?
-
+Ignoring queue creation time does not change the Big-O conclusion that LinkedList is faster. Creating a queue is O(N) for both ArrayList and LinkedList (adding n elements to the queue). Therefore, the main difference is between
+the processing time. Remove(0) is O(1) for LinkedList, so it is O(N) for LinkedList to process N tickets. Remove(0) is O(N) for ArrayList due to each element shifting right, so it is O(N^2) to process N tickets. Therefore, LinkedList
+is still faster, especially for larger queues.
 
 ## Write a paragraph or two in the style of a technical report (think about – how would I write this professionally if I needed to explain my findings to my manager?).
 Your report should answer the following questions:
 * What did you learn from this experience?
+
+
 * Which implementation do you suggest should be used? Are there certain situations that might call for the other approach?
 * How does the theoretical time complexity compare with your findings?
 
-
-
-
-
+The system should use LinkedList implementation
+Theoretical time complexity aligns with the findings when input size is large, and it is less obvious/aligned when input size is small.
 
 
 # Part 4
