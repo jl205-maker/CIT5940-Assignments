@@ -12,7 +12,7 @@ public class MyHashTable<T extends Comparable<T>> {
     /** Constructor */
     public MyHashTable() {
         capacity = 701;
-        myTree = new ArrayList<>();
+        myTree = new ArrayList<>(capacity);
         // prefill the buckets with null trees
         for (int i = 0; i < capacity; i++) {
             myTree.add(null);
@@ -60,19 +60,24 @@ public class MyHashTable<T extends Comparable<T>> {
     }
     /** Returns a pointer to the node where the given item is stored */
     public MyNode<T> contains(T item) {
-        int key = item.hashCode();
-        int index = Math.floorMod(key, capacity);
-        return myTree.get(index).contains(item);
+        if (item == null) {
+            throw new IllegalArgumentException("item cannot be null");
+        }
+        int index = Math.floorMod(item.hashCode(), capacity);
+        MyTree<T> targetBucket = myTree.get(index);
+        return (targetBucket == null) ? null : targetBucket.contains(item);
     }
     /** Remove the item if present */
     public boolean remove(T item) {
-        int key = item.hashCode();
-        int index = Math.floorMod(key, capacity);
-        boolean res = myTree.get(index).remove(item);
-        if (res) {
-            size--;
+        if (item == null) {
+            throw new IllegalArgumentException("item cannot be null");
         }
-        return res;
+        int index = Math.floorMod(item.hashCode(), capacity);
+        MyTree<T> targetBucket = myTree.get(index);
+        if (targetBucket == null) return false;
+        boolean removed = targetBucket.remove(item);
+        if (removed) size--;
+        return removed;
     }
     /** Returns true if the hash table is empty */
     public boolean isEmpty() {
@@ -84,6 +89,48 @@ public class MyHashTable<T extends Comparable<T>> {
     }
     /** Empties the hash table */
     public void clear(){
+        for (int i = 0; i < capacity; i++) {
+            myTree.set(i, null);
+        }
+        size = 0;
+    }
+    /** Test */
+    public static void main (String[] args) {
+        MyHashTable<String> myHashTable = new MyHashTable<>();
 
+        // insert
+        assert myHashTable.size == 0;
+
+        System.out.println(myHashTable.add("Apple"));
+        System.out.println(myHashTable.add("Orange"));
+        System.out.println(myHashTable.add("Watermelon"));
+        System.out.println(myHashTable.add("Pineapple"));
+        System.out.println(myHashTable.add("Banana"));
+        System.out.println(myHashTable.size());
+        assert myHashTable.size == 5;
+
+        // contains
+        System.out.println(myHashTable.contains("Apple"));
+        // System.out.println(myHashTable.contains("Apple").getItem());
+        assert myHashTable.contains("Apple") != null;
+
+        System.out.println(myHashTable.contains("Dragon"));
+        assert myHashTable.contains("Dragon") == null;
+
+        // duplicate insert
+        System.out.println(myHashTable.add("Banana"));
+        System.out.println(myHashTable.size());
+        assert myHashTable.size == 5;
+
+        // remove
+        System.out.println(myHashTable.remove("Apple")); // should print true
+        assert myHashTable.size == 4;
+
+        // remove again should fail
+        System.out.println(myHashTable.remove("Apple")); // should print false
+        assert myHashTable.size == 4;
+
+        System.out.println("All tests passed.");
     }
 }
+
