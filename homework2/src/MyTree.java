@@ -23,7 +23,7 @@ public class MyTree<T extends Comparable<T>> {
             return root;
         }
 
-        // ieratively find the location to insert
+        // iteratively find the location to insert
         MyNode<T> curr = root;
         MyNode<T> parent = null;
 
@@ -145,4 +145,6 @@ public class MyTree<T extends Comparable<T>> {
     public MyNode<T> getRoot() {
         return root;
     }
+
+    public int size() {return size;}
 }
