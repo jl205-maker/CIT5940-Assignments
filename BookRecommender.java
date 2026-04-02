@@ -194,7 +194,60 @@ public class BookRecommender {
         return  String.join(",", result);
     }
     public String shortest_path(String source_bid, String target_bid) {
-        return null;
+        // validate inputs
+        if (source_bid.equals(target_bid)) {
+            return source_bid;
+        }
+        BookGraph graph = GraphBuilder.FilteredBookGraph(this.bookGraph);
+
+        // validate inputs
+        if (!graph.adj.containsKey(source_bid) || !graph.adj.containsKey(target_bid)) {
+            return "NONE";
+        }
+
+        HashSet<String> visited = new HashSet<>();
+        Queue<String> queue = new LinkedList<>();
+        // parent map for path reconstruction
+        HashMap<String, String> parents = new HashMap<>();
+        parents.put(source_bid, null);
+
+        // single source bfs
+        queue.offer(source_bid);
+        visited.add(source_bid);
+        while (!queue.isEmpty()) {
+            String curr = queue.poll();
+
+            if (curr.equals(target_bid)) {
+                break;
+            }
+
+            List<String> neighbors = new ArrayList<>(graph.adj.get(curr).keySet());
+            Collections.sort(neighbors);
+
+            for (String neighbor : neighbors) {
+                if (!visited.contains(neighbor)) {
+                    parents.put(neighbor, curr);
+                    queue.offer(neighbor);
+                    visited.add(neighbor);
+                }
+            }
+        }
+
+        // reconstruct path
+        // if target is not visited,
+        // there does not exist a valid path between src and target
+        if (!visited.contains(target_bid)) {
+            return "NONE";
+        }
+        // otherwise, a valid path exists
+        Deque<String> path = new ArrayDeque<>();
+        String start = target_bid;
+        while (start != null) {
+            path.push(start);
+            start = parents.get(start);
+        }
+
+        return String.join("->", path);
     }
 }
 
