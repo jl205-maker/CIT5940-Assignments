@@ -10,23 +10,23 @@ public class BookRecommender {
     public String single_book_mn(String book) {
         ArrayList<String> res = new ArrayList<>();
 
-        HashMap<String, HashSet<String>> neighbors = this.bookGraph.adj.get(book);
+        HashMap<String, BBEdge> neighbors = this.bookGraph.adj.get(book);
         if (neighbors == null || neighbors.isEmpty()) {
             return "NONE";
         }
 
         // maintain a min-heap of 5 elements
         // break tie by key alphabetically
-        Queue<Map.Entry<String, HashSet<String>>> pq =
+        Queue<Map.Entry<String, BBEdge>> pq =
                 new PriorityQueue<>((a, b)-> {
-                    int cmp = Integer.compare(a.getValue().size(), b.getValue().size());
+                    int cmp = Integer.compare(a.getValue().getWeight(), b.getValue().getWeight());
                     if (cmp != 0) {
                         return cmp;
                     }
                     return b.getKey().compareTo(a.getKey());
                 });
 
-        for (Map.Entry<String, HashSet<String>> entry : neighbors.entrySet()) {
+        for (Map.Entry<String, BBEdge> entry : neighbors.entrySet()) {
             // add a new pair sorted in ascending order
             pq.offer(entry);
             while (pq.size() > 5) {
@@ -37,7 +37,7 @@ public class BookRecommender {
             return "NONE";
         }
         while (!pq.isEmpty()) {
-            Map.Entry<String, HashSet<String>> entry = pq.poll();
+            Map.Entry<String, BBEdge> entry = pq.poll();
             res.add(entry.getKey());
         }
         Collections.reverse(res);
@@ -53,7 +53,7 @@ public class BookRecommender {
 
         HashMap<String, Integer> cumulativeWeight = new HashMap<>();
         for (String book : books) {
-            HashMap<String, HashSet<String>> neighbors = this.bookGraph.adj.get(book);
+            HashMap<String, BBEdge> neighbors = this.bookGraph.adj.get(book);
             if (neighbors == null || neighbors.isEmpty()) {
                 continue;
             }
@@ -61,7 +61,7 @@ public class BookRecommender {
                 if (books.contains(neighbor)) {
                     continue;
                 }
-                cumulativeWeight.put(neighbor, cumulativeWeight.getOrDefault(neighbor, 0) + this.bookGraph.adj.get(book).get(neighbor).size());
+                cumulativeWeight.put(neighbor, cumulativeWeight.getOrDefault(neighbor, 0) + this.bookGraph.adj.get(book).get(neighbor).getWeight());
             }
         }
         // maintain a min-heap of 5 elements
@@ -214,16 +214,7 @@ class GraphBuilder {
             for (String book : books){
                 graph.addVertex(book);
             }
-            /**
-             * for (String b1 : books){
-             *                 for (String b2 : books){
-             *                     if (!b1.equals(b2)){
-             *                         graph.addEdge(b1, b2, user);
-             *                         graph.addEdge(b2, b1, user);
-             *                     }
-             *                 }
-             *             }
-             * */
+
             List<String> list = new ArrayList<>(books);
             for (int i = 0; i < list.size(); i++){
                 for (int j = i + 1; j < list.size(); j++){
@@ -254,13 +245,26 @@ class GraphBuilder {
         return graph;
     }
     public static BookGraph FilteredBookGraph(BookGraph bg){
-        // compute the median edge weight of the given bg
-        List<Integer> edgeWeights = new ArrayList<>();
-        Set<String> books = bg.adj.keySet();
-        for (String book : books){
-
+        double median = bg.medianEdgeWeight();
+        BookGraph filteredGraph = new BookGraph();
+        for (String book : bg.adj.keySet()){
+            filteredGraph.addVertex(book);
         }
-        return null;
+        for (String book : bg.adj.keySet()){
+
+            HashMap<String, BBEdge> neighbors = bg.adj.get(book);
+            for (String neighbor : neighbors.keySet()){
+                BBEdge edge = neighbors.get(neighbor);
+
+                if (edge.src.compareTo(edge.dest) < 0 && edge.getWeight() >= median){
+                    for (String user : edge.users){
+                        filteredGraph.addEdge(edge.src, edge.dest, user);
+                        filteredGraph.addEdge(edge.dest, edge.src, user);
+                    }
+                }
+            }
+        }
+        return filteredGraph;
     }
     private static HashMap<String, HashSet<String>> parseFile(String filename){
         HashMap<String, HashSet<String>> userToBooks = new HashMap<>();
@@ -289,33 +293,66 @@ class GraphBuilder {
  * Book - Set of connected books
 */
 class BookGraph {
-    // Book1 - (Book2 - Users in Common)
-    HashMap<String, HashMap<String, HashSet<String>>> adj;
+    // Book1 - (Book2 - Edge)
+    HashMap<String, HashMap<String, BBEdge>> adj;
     // Constructor
     public BookGraph(){
         this.adj = new HashMap<>();
     }
+    // Methods
     public void addVertex(String book){
         if (!this.adj.containsKey(book)){
             this.adj.put(book, new HashMap<>());
         }
     }
     public void addEdge(String book1, String book2, String user){
-        if (book1.equals(book2)){
-            return;
-        }
+        if (book1.equals(book2)) return;
+
         addVertex(book1);
-        if (!this.adj.get(book1).containsKey(book2)){
-            this.adj.get(book1).put(book2, new HashSet<>());
+
+        adj.putIfAbsent(book1, new HashMap<>());
+        adj.get(book1).putIfAbsent(book2, new BBEdge(book1, book2));
+
+        adj.get(book1).get(book2).users.add(user);
+    }
+    public double medianEdgeWeight(){
+        // collect all edges
+        ArrayList<Integer> weights = new ArrayList<>();
+        for (String src : this.adj.keySet()){
+            for (BBEdge edge : this.adj.get(src).values()) {
+                if (edge.src.compareTo(edge.dest) < 0) {
+                    weights.add(edge.getWeight());
+                }
+            }
         }
-        this.adj.get(book1).get(book2).add(user);
+        // compute the median edge weight of the given bg
+        Collections.sort(weights);
+        int n =  weights.size();
+        if (n == 0) {
+            return 0;
+        }
+        double median;
+        if (n % 2 == 1) {
+            median = weights.get(n/2);
+        } else {
+            median = (weights.get(n/2) + weights.get(n/2-1)) / 2.0;
+        }
+        return median;
     }
 }
 class BBEdge {
     String src;
     String dest;
     HashSet<String> users;
-    public BBEdge(String src, String dest){}
+
+    public BBEdge(String src, String dest){
+        this.src = src;
+        this.dest = dest;
+        this.users = new HashSet<>();
+    }
+    public int getWeight(){
+        return this.users.size();
+    }
 }
 
 /**
