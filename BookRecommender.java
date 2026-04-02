@@ -1,6 +1,45 @@
 import java.util.*;
 import java.io.*; // read from file
 public class BookRecommender {
+    public static void main(String[] args) {
+        if (args.length < 2) {
+            return;
+        }
+
+        String filename =  args[0];
+        String command =  args[1];
+
+        BookRecommender br = new BookRecommender(filename);
+
+        String output = "";
+
+        switch (command) {
+            case "single_book_mn":
+                if (args.length != 3) return;
+                output = br.single_book_mn(args[2]);
+                break;
+            case "like_history_mn"   :
+                if (args.length < 3) return;
+                List<String> inputs = new ArrayList<>();
+                for (int i = 2; i < args.length; i++) {
+                    inputs.add(args[i]);
+                }
+                output = br.like_history_mn(inputs);
+                break;
+            case "user_cf":
+                if (args.length != 3) return;
+                output = br.user_cf(args[2]);
+                break;
+            case "shortest_path":
+                if (args.length != 4) return;
+                output = br.shortest_path(args[2], args[3]);
+                break;
+            default:
+                return;
+        }
+
+        System.out.println(output);
+    }
     BookGraph bookGraph;
     UserGraph userGraph;
     public BookRecommender(String filename) {
@@ -43,7 +82,7 @@ public class BookRecommender {
         Collections.reverse(res);
         return String.join(",", res);
     }
-    public String like_history_mn(HashSet<String> books) {
+    public String like_history_mn(List<String> books) {
         // take every book in the input (like history)
         // look at all its neighbors
         // for each neighbor, accumulate a total score across all input books
