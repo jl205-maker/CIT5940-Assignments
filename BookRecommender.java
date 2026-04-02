@@ -96,7 +96,11 @@ public class BookRecommender {
     }
     public String user_cf(String targetUser){
         // get the book list by target user
-        HashSet<String> likedByTarget = this.userGraph.adj.get(targetUser);
+        HashSet<String> likedByTarget = this.userGraph.userToBooks.get(targetUser);
+        if (likedByTarget == null || likedByTarget.isEmpty()){
+            return "NONE";
+        }
+
         // maintain a min heap of size 5 to keep the top 5 similar users
         Queue<Map.Entry<String, Double>> pq = new PriorityQueue<>((a, b)->{
             int cmp = Double.compare(a.getValue(), b.getValue());
@@ -105,20 +109,15 @@ public class BookRecommender {
             }
             return b.getKey().compareTo(a.getKey());
         });
-        HashSet<String> candidateBooks = new HashSet<>();
+
         // compute the Jaccard similarity between each pair of users
-        for (String user : this.userGraph.adj.keySet()) {
+        for (String user : this.userGraph.userToBooks.keySet()) {
             // if is target user, skip
             if (user.equals(targetUser)) {
                 continue;
             }
             // get the book list by current user
-            HashSet<String> likedByUser = this.userGraph.adj.get(user);
-
-            // add the book list to candidate books
-            // not including the ones liked by the target user
-            candidateBooks.addAll(likedByUser);
-            candidateBooks.removeAll(likedByTarget);
+            HashSet<String> likedByUser = this.userGraph.userToBooks.get(user);
 
             // get the set of books liked by both target and user
             Set<String> intersection = new HashSet<>(likedByTarget);
@@ -138,12 +137,22 @@ public class BookRecommender {
             }
         }
 
-        // Get the top 5 taste twins
-        ArrayList<String> tasteTwins = new ArrayList<>();
+        // store the top 5 taste twins
+        HashSet<String> candidateUsers = new HashSet<>();
         while (!pq.isEmpty()) {
             Map.Entry<String, Double> entry = pq.poll();
-            tasteTwins.add(entry.getKey());
+            candidateUsers.add(entry.getKey());
         }
+        // compute candidate books
+        HashSet<String> candidateBooks = new HashSet<>();
+        for(String user : candidateUsers) {
+            candidateBooks.addAll(this.userGraph.userToBooks.get(user));
+        }
+        candidateBooks.removeAll(likedByTarget);
+        if (candidateBooks.isEmpty()) {
+            return "NONE";
+        }
+
         // maintain a min heap of size 5 to keep the top 5 similar users
         Queue<Map.Entry<String, Double>> bookPq = new PriorityQueue<>((a, b)->{
             int cmp = Double.compare(a.getValue(), b.getValue());
@@ -152,11 +161,16 @@ public class BookRecommender {
             }
             return b.getKey().compareTo(a.getKey());
         });
+
         for (String book : candidateBooks) {
             int denominator = 0;
             int numerator = 0;
-            for (String u : this.userGraph.adj.get(book)) {
-                if (tasteTwins.contains(u)) {
+            HashSet<String> users = this.userGraph.userToBooks.get(book);
+            if (users == null || users.isEmpty()) {
+                continue;
+            }
+            for (String u : users) {
+                if (candidateUsers.contains(u)) {
                     numerator++;
                 }
                 denominator++;
@@ -212,16 +226,17 @@ class GraphBuilder {
         UserGraph graph = new UserGraph();
         // Parse file, get User - Book hashmap
         HashMap<String, HashSet<String>> userToBooks = parseFile(filename);
+
+        for (String user : userToBooks.keySet()){
+            graph.addUserVertex(user);
+        }
         for (String user : userToBooks.keySet()){
             HashSet<String> books = userToBooks.get(user);
-            // add vertices
             for (String book : books){
-                graph.addVertex(user);
-                graph.addVertex(book);
-            }
-            // add undirected edges
-            for (String b : books){
-                graph.addEdge(b, user);
+                // add book vertices
+                graph.addBookVertex(book);
+                // add book <-> user edges
+                graph.addEdge(user, book);
             }
         }
         return graph;
@@ -291,17 +306,25 @@ class BookGraph {
  * Value - Set of books liked by the user
  */
 class UserGraph {
-    HashMap<String, HashSet<String>> adj;
+    HashMap<String, HashSet<String>> userToBooks;
+    HashMap<String, HashSet<String>> bookToUsers;
     public UserGraph(){
-        this.adj = new HashMap<>();
+        this.userToBooks = new HashMap<>();
+        this.bookToUsers = new HashMap<>();
     }
-    public void addVertex(String v){
-        if (!this.adj.containsKey(v)){
-            this.adj.put(v, new HashSet<>());
+    public void addUserVertex(String u){
+        if (!this.userToBooks.containsKey(u)){
+            this.userToBooks.put(u, new HashSet<>());
         }
     }
-    public void addEdge(String v1, String v2){
-        this.adj.get(v1).add(v2);
-        this.adj.get(v2).add(v1);
+    public void addBookVertex(String b){
+        if (!this.bookToUsers.containsKey(b)){
+            this.bookToUsers.put(b, new HashSet<>());
+        }
+    }
+
+    public void addEdge(String u, String b){
+        this.userToBooks.get(u).add(b);
+        this.bookToUsers.get(b).add(u);
     }
 }
