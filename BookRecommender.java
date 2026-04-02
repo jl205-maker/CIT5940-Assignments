@@ -363,11 +363,16 @@ class GraphBuilder {
         try (BufferedReader bf = new BufferedReader((new FileReader(filename)))) {
             String line;
             while ((line = bf.readLine()) != null) {
-                String[] tokens = line.split(",");
-                if (!userToBooks.containsKey(tokens[0])) {
-                    userToBooks.put(tokens[0], new HashSet<>());
+                line = line.trim();
+                if (line.isEmpty()) continue;
+                String[] tokens = line.split(",", 2);
+                if (tokens.length < 2) continue;
+                String user = tokens[0].trim();
+                String book = tokens[1].trim();
+                if (!userToBooks.containsKey(user)) {
+                    userToBooks.put(user, new HashSet<>());
                 }
-                userToBooks.get(tokens[0]).add(tokens[1]);
+                userToBooks.get(user).add(book);
             }
         } catch (IOException e) {
             e.printStackTrace();
