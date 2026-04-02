@@ -165,7 +165,7 @@ public class BookRecommender {
         for (String book : candidateBooks) {
             int denominator = 0;
             int numerator = 0;
-            HashSet<String> users = this.userGraph.userToBooks.get(book);
+            HashSet<String> users = this.userGraph.bookToUsers.get(book);
             if (users == null || users.isEmpty()) {
                 continue;
             }
@@ -182,16 +182,19 @@ public class BookRecommender {
             }
         }
         // Get the top 5 taste twins
-        ArrayList<String> hiddenGem = new ArrayList<>();
+        ArrayList<String> result = new ArrayList<>();
         while (!bookPq.isEmpty()) {
             Map.Entry<String, Double> entry = bookPq.poll();
-            hiddenGem.add(entry.getKey());
+            result.add(entry.getKey());
         }
-        if (hiddenGem.isEmpty()) {
+        if (result.isEmpty()) {
             return "NONE";
         }
-        Collections.reverse(hiddenGem);
-        return  String.join(",", hiddenGem);
+        Collections.reverse(result);
+        return  String.join(",", result);
+    }
+    public String shortest_path(String source_bid, String target_bid) {
+        return null;
     }
 }
 
@@ -211,12 +214,21 @@ class GraphBuilder {
             for (String book : books){
                 graph.addVertex(book);
             }
-            for (String b1 : books){
-                for (String b2 : books){
-                    if (!b1.equals(b2)){
-                        graph.addEdge(b1, b2, user);
-                        graph.addEdge(b2, b1, user);
-                    }
+            /**
+             * for (String b1 : books){
+             *                 for (String b2 : books){
+             *                     if (!b1.equals(b2)){
+             *                         graph.addEdge(b1, b2, user);
+             *                         graph.addEdge(b2, b1, user);
+             *                     }
+             *                 }
+             *             }
+             * */
+            List<String> list = new ArrayList<>(books);
+            for (int i = 0; i < list.size(); i++){
+                for (int j = i + 1; j < list.size(); j++){
+                    graph.addEdge(list.get(i), list.get(j), user);
+                    graph.addEdge(list.get(j), list.get(i), user);
                 }
             }
         }
@@ -240,6 +252,15 @@ class GraphBuilder {
             }
         }
         return graph;
+    }
+    public static BookGraph FilteredBookGraph(BookGraph bg){
+        // compute the median edge weight of the given bg
+        List<Integer> edgeWeights = new ArrayList<>();
+        Set<String> books = bg.adj.keySet();
+        for (String book : books){
+
+        }
+        return null;
     }
     private static HashMap<String, HashSet<String>> parseFile(String filename){
         HashMap<String, HashSet<String>> userToBooks = new HashMap<>();
@@ -289,15 +310,12 @@ class BookGraph {
         }
         this.adj.get(book1).get(book2).add(user);
     }
-    public int getEdgeWeight(String book1, String book2){
-        return this.adj.get(book1).get(book2).size();
-    }
-    public HashSet<String> getCommonUsers(String book1, String book2){
-        return this.adj.get(book1).get(book2);
-    }
-    public Set<String> getNeighbors(String book){
-        return this.adj.get(book).keySet();
-    }
+}
+class BBEdge {
+    String src;
+    String dest;
+    HashSet<String> users;
+    public BBEdge(String src, String dest){}
 }
 
 /**
